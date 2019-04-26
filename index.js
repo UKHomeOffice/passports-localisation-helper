@@ -1,36 +1,29 @@
 #!/usr/bin/env node
 
+const flatten = require('./flatten');
+
 const json2csv = filename => {
     // read in file
     const json = require(filename);
 
-    // recursively extract items
-    const localisation = [];
+    // flatten json object
+    const flat = flatten.implode(json);
 
-    const extract = (obj, parent, child) => {
-        let id = child;
-        if (parent) id = parent + '.' + child;
-        if (typeof obj === 'string') {
-            localisation.push({id, en: obj, cy: '' });
-        } else if (Array.isArray(obj)) {
-            obj.forEach((value, index) => extract(value, id, index + 1));
-        } else if (typeof obj === 'object' && obj) {
-            for (const key in obj) extract(obj[key], id, key);
-        } else {
-            throw new Error('Unknown localisation type at ' + id + ': ' + obj);
-        }
-    };
+    // extract object items to an array
+    const records = Object.keys(flat).map(id => ({
+        id: id,
+        en: flat[id],
+        cy: ''
+    }));
 
-    extract(json);
-
-    // convert array to a valid csv file
+    // convert array to a csv file string
     const csvStringify = require('csv-stringify/lib/sync');
-    const csv = csvStringify(localisation, {
+    const csv = csvStringify(records, {
         header: true,
         columns: [
             { key: 'id', header: 'ID' },
-            { key: 'en', header: 'English' },
-            { key: 'cy', header: 'Welsh' }
+            { key: 'en', header: 'English content' },
+            { key: 'cy', header: 'Welsh content' }
         ]
     });
     
@@ -47,30 +40,16 @@ const csv2json = (filename, lang) => {
         skip_empty_lines: true
     });
 
-    const localisation = {};
+    // extract csv rows by language
+    const flat = records.reduce((flat, record) => {
+        flat[record.id] = record[lang];
+        return flat;
+    }, {});
 
-    records.forEach(record => {
-        // convert numeric parts back to numbers
-        const idParts = record.id
-            .split('.')
-            .map(id => id.match(/^[0-9]+$/) ? parseInt(id, 10) - 1 : id);
+    // unflatten to object tree
+    const localisation = flatten.explode(flat);
 
-        // build up parents
-        let obj = localisation;
-        while(idParts.length > 1) {
-            const id = idParts.shift();
-            if (!obj[id]) {
-                const next = idParts[0];
-                obj[id] = typeof next === 'number' ? [] : {};
-            }
-            obj = obj[id];
-        }
-
-        // set value
-        const id = idParts.shift();
-        obj[id]= record[lang];
-    });
-
+    // format to text string
     const json = JSON.stringify(localisation, null, 4);
 
     return json;
