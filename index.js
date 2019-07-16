@@ -2,18 +2,20 @@
 
 const flatten = require('./flatten');
 
-const json2csv = filename => {
+const json2csv = (en, cy) => {
     // read in file
-    const json = require(filename);
+    const enJson = en ? require(en) : {};
+    const cyJson = cy ? require(cy) : {};
 
     // flatten json object
-    const flat = flatten.implode(json);
+    const enFlat = flatten.implode(enJson);
+    const cyFlat = flatten.implode(cyJson);
 
     // extract object items to an array
-    const records = Object.keys(flat).map(id => ({
+    const records = Object.keys(enFlat).map(id => ({
         id: id,
-        en: flat[id],
-        cy: ''
+        en: enFlat[id] || '',
+        cy: cyFlat[id] || ''
     }));
 
     // convert array to a csv file string
@@ -56,7 +58,7 @@ const csv2json = (filename, lang) => {
 };
 
 const usage = () => {
-    console.error('Usage:\n  node . filename.csv [en|cy] > outfile.json\n  node . filename.json > outfile.csv\n');
+    console.error('Usage:\n  node . filename.csv [en|cy] > outfile.json\n  node . en.json [cy.json] > outfile.csv\n');
     process.exit(1);
 };
 
@@ -64,11 +66,12 @@ const args = process.argv.slice(2);
 
 const filename = args.shift();
 const lang = args.shift();
+const cyFilename = lang;
 
 let result;
 
 if (!filename) usage();
-else if (filename.endsWith('.json')) result = json2csv(filename);
+else if (filename.endsWith('.json')) result = json2csv(filename, cyFilename);
 else if (filename.endsWith('.csv')) result = csv2json(filename, lang || 'cy');
 else usage();
 
