@@ -7,7 +7,7 @@ const implode = json => {
         let id = child;
         if (parent) id = parent + '.' + child;
         if (typeof obj === 'string') {
-            flat[id] = obj;
+            flat[id] = obj.replace(/’/g, '\'');
         } else if (Array.isArray(obj)) {
             // convert array indexes to strings starting at 1 instead of zero
             obj.forEach((value, index) => walk(value, id, index + 1));
@@ -45,7 +45,7 @@ const explode = flat => {
 
         // set value
         const leafId = idParts.shift();
-        obj[leafId]= flat[id];
+        obj[leafId]= flat[id].replace(/'/g, '’');
     }
 
     return json;
