@@ -28,7 +28,7 @@ const json2csv = (en, cy) => {
             { key: 'cy', header: 'Welsh content' }
         ]
     });
-    
+
     return csv;
 };
 
@@ -37,7 +37,6 @@ const csv2json = (filename, lang) => {
     const csv = require('fs').readFileSync(filename);
     const csvParse = require('csv-parse/lib/sync');
     const records = csvParse(csv, {
-        columns: true,
         columns: [ 'id', 'en', 'cy' ],
         skip_empty_lines: true
     });
@@ -47,6 +46,8 @@ const csv2json = (filename, lang) => {
         flat[record.id] = record[lang];
         return flat;
     }, {});
+
+    delete flat['ID'];
 
     // unflatten to object tree
     const localisation = flatten.explode(flat);

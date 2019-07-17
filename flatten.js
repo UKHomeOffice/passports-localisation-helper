@@ -27,6 +27,10 @@ const explode = flat => {
     const json = {};
 
     for (const id in flat) {
+        let value = flat[id];
+        if (typeof value === 'string') value = value.replace(/'/g, '’');
+        if (value === '') continue;
+
         // convert numeric array index parts back to numbers beginning with zero
         const idParts = id
             .split('.')
@@ -36,7 +40,7 @@ const explode = flat => {
         let obj = json;
         while(idParts.length > 1) {
             const id = idParts.shift();
-            if (!obj[id]) {
+            if (obj[id] === undefined) {
                 const next = idParts[0];
                 obj[id] = typeof next === 'number' ? [] : {};
             }
@@ -45,7 +49,7 @@ const explode = flat => {
 
         // set value
         const leafId = idParts.shift();
-        obj[leafId]= flat[id].replace(/'/g, '’');
+        obj[leafId] = value;
     }
 
     return json;
