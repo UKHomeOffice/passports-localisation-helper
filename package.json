@@ -6,7 +6,7 @@
   "author": "HMPO",
   "license": "MIT",
   "dependencies": {
-    "csv-parse": "^4.4.1",
+    "csv-parse": "^4.4.6",
     "csv-stringify": "^5.3.0"
   }
 }
